@@ -154,31 +154,30 @@ export function HoneycombGem({ gem, isSelected, onClick, cellSize }: HoneycombGe
       
       <motion.div
         className="absolute cursor-pointer select-none"
-        layoutId={gem.id}
-        layout="position"
+        key={gem.id}
         style={{
           width: hexSize,
           height: hexHeight,
-          left: targetX,
-          top: targetY,
           zIndex: isSelected ? 20 : gem.isMatched ? 0 : 1,
         }}
-        initial={gem.isNew ? { 
-          scale: 0, 
-          opacity: 0,
-          y: -cellSize * 2,
-        } : false}
         animate={{
+          left: targetX,
+          top: targetY,
           scale: gem.isMatched ? 0 : 1,
           opacity: gem.isMatched ? 0 : 1,
-          rotate: gem.isMatched ? 90 : 0,
         }}
+        initial={gem.isNew ? { 
+          left: targetX, 
+          top: targetY - cellSize, 
+          scale: 0, 
+          opacity: 0 
+        } : { left: targetX, top: targetY }}
         exit={{ scale: 0, opacity: 0 }}
         transition={{
-          layout: { type: 'spring', stiffness: 300, damping: 25 },
+          left: { duration: 0.25, ease: 'easeOut' },
+          top: { duration: 0.25, ease: 'easeOut' },
           scale: { duration: 0.2 },
           opacity: { duration: 0.2 },
-          rotate: { duration: 0.3 },
         }}
         onClick={onClick}
         whileHover={{ scale: gem.isMatched ? 0 : 1.05, zIndex: 30 }}
