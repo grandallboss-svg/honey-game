@@ -189,21 +189,23 @@ export function GameBoard() {
       </div>
 
       {/* Ячейки */}
-      <div className="absolute inset-0" style={{ width: boardWidth, height: boardHeight }}>
-        {board.map((row, rowIndex) =>
-          row.map((gem, colIndex) =>
-            gem ? (
-              <HoneycombGem
-                key={gem.id}
-                gem={gem}
-                isSelected={selectedGem?.row === rowIndex && selectedGem?.col === colIndex}
-                onClick={() => handleCellClick(rowIndex, colIndex)}
-                cellSize={cellSize}
-              />
-            ) : null
-          )
-        )}
-      </div>
+      <AnimatePresence>
+        <div className="absolute inset-0" style={{ width: boardWidth, height: boardHeight }}>
+          {board.map((row, rowIndex) =>
+            row.map((gem, colIndex) =>
+              gem ? (
+                <HoneycombGem
+                  key={gem.id}
+                  gem={gem}
+                  isSelected={selectedGem?.row === rowIndex && selectedGem?.col === colIndex}
+                  onClick={() => handleCellClick(rowIndex, colIndex)}
+                  cellSize={cellSize}
+                />
+              ) : null
+            )
+          )}
+        </div>
+      </AnimatePresence>
 
       {/* Эффекты частиц */}
       <AnimatePresence>

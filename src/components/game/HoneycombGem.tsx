@@ -154,36 +154,35 @@ export function HoneycombGem({ gem, isSelected, onClick, cellSize }: HoneycombGe
       
       <motion.div
         className="absolute cursor-pointer select-none"
+        layoutId={gem.id}
+        layout="position"
         style={{
           width: hexSize,
           height: hexHeight,
+          left: targetX,
+          top: targetY,
           zIndex: isSelected ? 20 : gem.isMatched ? 0 : 1,
         }}
-        // Анимация позиции через x/y transform
+        initial={gem.isNew ? { 
+          scale: 0, 
+          opacity: 0,
+          y: -cellSize * 2,
+        } : false}
         animate={{
-          x: targetX,
-          y: targetY,
           scale: gem.isMatched ? 0 : 1,
           opacity: gem.isMatched ? 0 : 1,
           rotate: gem.isMatched ? 90 : 0,
         }}
-        // Для новых элементов - падение сверху
-        initial={gem.isNew ? { 
-          x: targetX, 
-          y: targetY - cellSize * 2, 
-          scale: 0, 
-          opacity: 0 
-        } : undefined}
+        exit={{ scale: 0, opacity: 0 }}
         transition={{
-          x: { type: 'tween', duration: 0.3, ease: 'easeOut' },
-          y: { type: 'tween', duration: 0.3, ease: 'easeOut' },
-          scale: { duration: gem.isMatched ? 0.5 : 0.2, ease: 'easeOut' },
-          opacity: { duration: gem.isMatched ? 0.5 : 0.2, ease: 'easeOut' },
-          rotate: { duration: gem.isMatched ? 0.5 : 0, ease: 'easeOut' },
+          layout: { type: 'spring', stiffness: 300, damping: 25 },
+          scale: { duration: 0.2 },
+          opacity: { duration: 0.2 },
+          rotate: { duration: 0.3 },
         }}
         onClick={onClick}
-        whileHover={{ scale: gem.isMatched ? 0 : 1.05, zIndex: 30, transition: { duration: 0.2 } }}
-        whileTap={{ scale: gem.isMatched ? 0 : 0.95, transition: { duration: 0.1 } }}
+        whileHover={{ scale: gem.isMatched ? 0 : 1.05, zIndex: 30 }}
+        whileTap={{ scale: gem.isMatched ? 0 : 0.95 }}
       >
         {/* SVG сота */}
         <svg
