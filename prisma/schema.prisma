@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Игрок
+model Player {
+  id              String   @id @default(cuid())
+  telegramId      String   @unique
+  username        String?
+  firstName       String?
+  lastName        String?
+  photoUrl        String?
+  
+  // Игровые данные
+  nectar          Int      @default(0)      // Текущий нектар (баллы)
+  totalNectar     Int      @default(0)      // Всего собрано за всё время
+  level           Int      @default(1)      // Уровень игрока
+  experience      Int      @default(0)      // Опыт
+  
+  // Криптовалютные данные
+  medBalance      Float    @default(0)      // Баланс криптовалюты MED
+  totalWithdrawn  Float    @default(0)      // Всего выведено
+  
+  // Валюта для покупок
+  gold            Int      @default(100)    // Золото для покупки оружия
+  
+  // Статистика
+  gamesPlayed     Int      @default(0)
+  matchesMade     Int      @default(0)
+  combosHit       Int      @default(0)
+  maxCombo        Int      @default(0)      // Максимальное комбо
+  bonusesCollected Int    @default(0)
+  totalScore      Int      @default(0)      // Общий счёт за все игры
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  transactions    Transaction[]
+  gameSessions    GameSession[]
+  inventory       InventoryItem[]
+  achievements    PlayerAchievement[]
+}
+
+// Транзакции (вывод криптовалюты)
+model Transaction {
+  id          String   @id @default(cuid())
+  playerId    String
+  player      Player   @relation(fields: [playerId], references: [id])
+  
+  type        String   // "withdraw", "bonus", "exchange", "purchase"
+  amount      Float    // Количество MED
+  nectarSpent Int?     // Потраченный нектар (для exchange)
+  status      String   @default("pending") // pending, completed, failed
+  txHash      String?  // Хеш транзакции в блокчейне
+  description String?  // Описание транзакции
+  
+  createdAt   DateTime @default(now())
+}
+
+// Игровые сессии
+model GameSession {
+  id          String   @id @default(cuid())
+  playerId    String
+  player      Player   @relation(fields: [playerId], references: [id])
+  
+  score       Int      @default(0)
+  moves       Int      @default(0)
+  matches     Int      @default(0)
+  combos      Int      @default(0)
+  nectarEarned Int     @default(0)
+  bonusesFound Int     @default(0)
+  weaponsUsed Int      @default(0)  // Использовано оружия
+  
+  duration    Int      @default(0)  // Время игры в секундах
+  completed   Boolean  @default(false)
+  
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+}
+
+// Оружие и способности
+model Weapon {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  type        String   // "lightning", "dynamite", "honeyblast", "beeswarm"
+  icon        String   // Эмодзи или URL
+  
+  // Эффекты
+  damage      Int      @default(1)   // Количество уничтожаемых ячеек
+  radius      Int      @default(1)   // Радиус действия
+  specialEffect String? // Дополнительный эффект
+  
+  // Цена
+  goldPrice   Int      @default(0)   // Цена в золоте
+  medPrice    Float    @default(0)   // Цена в MED
+  dropChance  Float    @default(0)   // Шанс выпадения в игре (0-1)
+  
+  // Требования
+  minLevel    Int      @default(1)
+  
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  inventory   InventoryItem[]
+}
+
+// Инвентарь игрока
+model InventoryItem {
+  id          String   @id @default(cuid())
+  playerId    String
+  player      Player   @relation(fields: [playerId], references: [id])
+  weaponId    String
+  weapon      Weapon   @relation(fields: [weaponId], references: [id])
+  
+  quantity    Int      @default(1)
+  
+  createdAt   DateTime @default(now())
+}
+
+// Достижения
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  icon        String   // Эмодзи
+  
+  type        String   // "games", "nectar", "combos", "weapons", "score"
+  requirement Int      // Требуемое значение
+  
+  // Награды
+  goldReward  Int      @default(0)
+  medReward   Float    @default(0)
+  
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  players     PlayerAchievement[]
+}
+
+// Достижения игрока
+model PlayerAchievement {
+  id            String   @id @default(cuid())
+  playerId      String
+  player        Player   @relation(fields: [playerId], references: [id])
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  
+  unlockedAt    DateTime @default(now())
+}
+
+// Бонусы которые могут выпасть
+model BonusDrop {
+  id          String   @id @default(cuid())
+  type        String   // "crypto", "multiplier", "extra_moves", "gold"
+  amount      Float    // Количество MED (для crypto бонуса)
+  multiplier  Float?   // Множитель (для multiplier бонуса)
+  goldAmount  Int?     // Количество золота
+  chance      Float    // Шанс выпадения (0-1)
+  minLevel    Int      @default(1)
+  active      Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+}
